@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
-import TodoItems from './TodoItems';
+import TodoListDashboard from './TodoListDashboard';
 import fetch from 'isomorphic-fetch';
 
 class App extends Component {
   constructor() {
     super()
     this.state = {
-      items: [],
-      currentItem: {title:''},
+      lists: [],
+      currentList: {name:''},
     }
   }
   componentDidMount = async () => {
@@ -20,22 +20,22 @@ class App extends Component {
       method:'GET'
     });
     const json = await response.json();
-    this.setState({items : json});
+    this.setState({lists : json});
   }
   
   handleInput = e => {
     const itemText = e.target.value;
-    const currentItem = { title: itemText }
+    const currentList = { name: itemText }
     this.setState({
-      currentItem
+      currentList
     })
   }
 
-  addItem = async(e) => {
+  addList = async(e) => {
     e.preventDefault();
-    const newItem = this.state.currentItem;
-    const request = {title: newItem.title, name:"test",items:[{"name":"test"}],userId:'testUser10'};
-    if (newItem.title !== '') {
+    const newList = this.state.currentList;
+    const request = {name: newList.name, items:[], userId:'testUser10'};
+    if (newList.name !== '') {
       const response = await fetch('https://m2ve8r4p80.execute-api.us-east-1.amazonaws.com/beta/todos-team3', {
           headers: {
             accept: 'application/json',
@@ -45,39 +45,42 @@ class App extends Component {
           body: JSON.stringify(request),
           method:'POST'
         });
-      const json = await response.json();
       if(response.status === 200){
+        const json = await response.json();
         request.id = json.id;
-        const items = this.state.items;
-        items.unshift(request);
-        this.setState({ items: items });
+        const lists = this.state.lists;
+        lists.unshift(request);
+        this.setState({ lists: lists });
         this.inputElement.value = '';
       }
     }
   }
 
-  editItem = async (title,id) => {
-    const response = await fetch(`https://b3tcfb1z62.execute-api.us-east-1.amazonaws.com/dev/api/todos/${id}`, {
+  editList = async (newList) => {
+    // console.log(newList);
+    const response = await fetch(`https://m2ve8r4p80.execute-api.us-east-1.amazonaws.com/beta/todos-team3/${newList.id}`, {
           headers: {
             accept: 'application/json',
             'Content-Type': 'application/json',
             'User-Agent': 'todo',
           },
-          body: JSON.stringify({ title: title }),
+          body: JSON.stringify(newList),
           method:'PUT'
         });
-    const json = await response.json();
-    this.state.items.forEach(item => {
-      if(item._id === json._id) {
-        item.title = json.title;
-      }
-    });
-    this.setState({ items: this.state.items});
+    if(response.status === 200){
+      const lists = this.state.lists;
+      this.state.lists.forEach((list, i) => {
+        if(list.id === newList.id) {
+          lists[i] = newList;
+        }
+      });
+      this.setState({ lists: lists});
+    }
   }
 
-  deleteItem = async(id) => {
-    const filteredItems = this.state.items.filter(item => {
-      return item.id !== id
+  deleteList = async(id) => {
+    const filteredLists = this.state.lists.filter(list => {
+      return list.id !== id
     })
     const response = await fetch(`https://m2ve8r4p80.execute-api.us-east-1.amazonaws.com/beta/todos-team3/${id}`, {
           headers: {
@@ -87,9 +90,8 @@ class App extends Component {
           },
           method:'DELETE'
         });
-    const json = await response.json();
     if(response.status === 200){
-      this.setState({ items: filteredItems});
+      this.setState({ lists: filteredLists});
     }
   }
   render() {
@@ -102,13 +104,13 @@ class App extends Component {
                   ref={c => {
                     this.inputElement = c;
                   }}
-                  value={this.state.currentItem.text}
+                  value={this.state.currentList.text}
                   onChange={this.handleInput}
             />
-            <button onClick={this.addItem}>Add Task</button>
+            <button onClick={this.addList}>Add List</button>
           </div>
         </div>
-        <TodoItems entries={this.state.items} editItem={this.editItem} deleteItem={this.deleteItem}/>
+        <TodoListDashboard entries={this.state.lists} editList={this.editList} deleteList={this.deleteList}/>
       </div>
     );
   }
