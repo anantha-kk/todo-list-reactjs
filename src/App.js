@@ -11,7 +11,7 @@ class App extends Component {
     }
   }
   componentDidMount = async () => {
-    const response = await fetch('https://b3tcfb1z62.execute-api.us-east-1.amazonaws.com/dev/api/todos', {
+    const response = await fetch('https://m2ve8r4p80.execute-api.us-east-1.amazonaws.com/beta/todos-team3?userId=testUser10', {
       headers: {
 				accept: 'application/json',
 				'Content-Type': 'application/json',
@@ -34,21 +34,25 @@ class App extends Component {
   addItem = async(e) => {
     e.preventDefault();
     const newItem = this.state.currentItem;
+    const request = {title: newItem.title, name:"test",items:[{"name":"test"}],userId:'testUser10'};
     if (newItem.title !== '') {
-      const response = await fetch('https://b3tcfb1z62.execute-api.us-east-1.amazonaws.com/dev/api/todos', {
+      const response = await fetch('https://m2ve8r4p80.execute-api.us-east-1.amazonaws.com/beta/todos-team3', {
           headers: {
             accept: 'application/json',
             'Content-Type': 'application/json',
             'User-Agent': 'todo',
           },
-          body: JSON.stringify({title: newItem.title}),
+          body: JSON.stringify(request),
           method:'POST'
         });
       const json = await response.json();
-      const items = this.state.items;
-      items.unshift(json);
-      this.setState({ items: items });
-      this.inputElement.value = '';
+      if(response.status === 200){
+        request.id = json.id;
+        const items = this.state.items;
+        items.unshift(request);
+        this.setState({ items: items });
+        this.inputElement.value = '';
+      }
     }
   }
 
@@ -73,18 +77,18 @@ class App extends Component {
 
   deleteItem = async(id) => {
     const filteredItems = this.state.items.filter(item => {
-      return item._id !== id
+      return item.id !== id
     })
-    const response = await fetch(`https://b3tcfb1z62.execute-api.us-east-1.amazonaws.com/dev/api/todos/${id}`, {
+    const response = await fetch(`https://m2ve8r4p80.execute-api.us-east-1.amazonaws.com/beta/todos-team3/${id}`, {
           headers: {
             accept: 'application/json',
             'Content-Type': 'application/json',
             'User-Agent': 'todo',
           },
           method:'DELETE'
-        })
+        });
     const json = await response.json();
-    if (json.deletedCount === 1) {
+    if(response.status === 200){
       this.setState({ items: filteredItems});
     }
   }

@@ -13,7 +13,7 @@ class TodoItems extends Component {
     const todoEntries = this.props.entries
     const listitems = todoEntries.map((item) => {
       return (
-        <TodoItem key={item._id} item={item} editItem = {this.props.editItem} deleteItem= {this.props.deleteItem}/>
+        <TodoItem key={item.id} item={item} editItem = {this.props.editItem} deleteItem= {this.props.deleteItem}/>
       )
     });
 
